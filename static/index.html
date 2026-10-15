@@ -298,7 +298,13 @@ tr.approved .ent-col { color: var(--green); font-style: normal; font-weight: 600
     </div>
     <div class="campo f-fex">
       <label>Fecha exacta</label>
-      <input type="date" id="f-fecha-ex">
+      <div style="display:flex;gap:4px;align-items:center">
+        <input type="date" id="f-fecha-ex" style="flex:1;min-width:0">
+        <button onclick="document.getElementById('f-fecha-ex').value=''" type="button"
+          style="border:1px solid var(--border);background:var(--bg3);color:var(--fg2);
+                 border-radius:6px;padding:6px 8px;cursor:pointer;font-size:0.8rem;
+                 white-space:nowrap;height:100%">✕</button>
+      </div>
     </div>
     <div class="campo f-monto">
       <label>Monto mín</label>
