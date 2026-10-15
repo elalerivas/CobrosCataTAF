@@ -156,9 +156,9 @@ header h1 { font-size: 1rem; flex: 1; font-weight: 700; }
   cursor: pointer; font-size: 0.85rem; font-weight: 600;
   white-space: nowrap; color: white;
 }
-.btn-buscar { background: var(--accent); }
+.btn-buscar { background: #276749; }
 .btn-csv    { background: #2b6cb0; }
-.btn-buscar:active { background: var(--accent2); }
+.btn-buscar:active { background: #22543d; }
 .btn-csv:active    { opacity: 0.8; }
 
 /* ── STATS ── */
@@ -380,7 +380,7 @@ btnTema.onclick = () => aplicarTema(html.getAttribute("data-theme") === "dark" ?
 
 // ── Inicializar ───────────────────────────────────────────────────────────
 const hoy = new Date().toISOString().slice(0,10);
-document.getElementById("f-desde").value = hoy;
+document.getElementById("f-desde").value = "2026-10-11";
 document.getElementById("f-hasta").value = hoy;
 
 const nombre = lsGet("mp_nombre") || "CobroCataTAF v2.0";
@@ -390,10 +390,11 @@ document.getElementById("cfg-nombre").value = nombre;
 document.getElementById("cfg-token").value  = lsGet("mp_token");
 
 // ── Config ────────────────────────────────────────────────────────────────
-document.getElementById("btn-config").onclick = () => {
+document.getElementById("btn-config").addEventListener("click", (e) => {
+  e.stopPropagation();
   const p = document.getElementById("panel-config");
   p.style.display = p.style.display === "none" ? "block" : "none";
-};
+});
 document.getElementById("btn-guardar").onclick = () => {
   const n = document.getElementById("cfg-nombre").value.trim() || "CobroCataTAF v2.0";
   const t = document.getElementById("cfg-token").value.trim();
