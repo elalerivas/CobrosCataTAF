@@ -11,12 +11,24 @@ PRECIO_GENERAL = 55_000
 PRECIO_SOCIO   = 40_000
 
 def fmt_date(s):
+    if not s:
+        return "-"
     try:
-        dt = datetime.fromisoformat(s)
+        # Python < 3.11: fromisoformat no acepta microsegundos con 'Z' ni '+00:00' completo
+        # Normalizar: reemplazar Z por +00:00 y truncar microsegundos si hace falta
+        s2 = s.replace("Z", "+00:00")
+        # Intentar parseo directo
+        try:
+            dt = datetime.fromisoformat(s2)
+        except ValueError:
+            # Quitar microsegundos si hay 7 dígitos: 2026-10-15T12:34:56.1234567+00:00
+            import re as _re
+            s2 = _re.sub(r'(\.\d{6})\d+', r'\1', s2)
+            dt = datetime.fromisoformat(s2)
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=timezone.utc)
         return dt.astimezone(AR).strftime("%d/%m/%Y %H:%M")
-    except:
+    except Exception:
         return s or "-"
 
 def calcular_entradas(monto):
@@ -107,6 +119,15 @@ def pagos():
         else:
             pagos_f = all_p
 
+        # Pre-calcular fecha_ex_fmt una sola vez
+        fecha_ex_fmt = None
+        if fecha_ex:
+            try:
+                dt_ex = datetime.strptime(fecha_ex, "%Y-%m-%d")
+                fecha_ex_fmt = dt_ex.strftime("%d/%m/%Y")
+            except Exception:
+                fecha_ex_fmt = fecha_ex
+
         # Filtros locales
         rows = []
         for p in pagos_f:
@@ -118,8 +139,10 @@ def pagos():
                 continue
 
             fecha_fmt = fmt_date(p.get("date_created", ""))
-            if fecha_ex and fecha_ex not in fecha_fmt:
-                continue
+            if fecha_ex_fmt:
+                # fecha_ex_fmt es DD/MM/YYYY, fecha_fmt es DD/MM/YYYY HH:MM
+                if fecha_ex_fmt not in fecha_fmt:
+                    continue
 
             com = comision(p)
             monto_neto = amt - com
@@ -183,6 +206,28 @@ def pagos():
             }
         })
 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/debug")
+def debug():
+    """Muestra fechas crudas de los últimos 5 pagos — para diagnosticar formato."""
+    token = request.args.get("token", "").strip()
+    if not token:
+        return jsonify({"error": "Token requerido"}), 400
+    try:
+        sdk = mercadopago.SDK(token)
+        r = sdk.payment().search(filters={"sort":"date_created","criteria":"desc","limit":5,"offset":0})
+        results = r.get("response", {}).get("results", [])
+        muestra = []
+        for p in results:
+            raw = p.get("date_created", "")
+            muestra.append({
+                "id": p.get("id"),
+                "date_created_raw": raw,
+                "fmt_date_result": fmt_date(raw),
+            })
+        return jsonify(muestra)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
