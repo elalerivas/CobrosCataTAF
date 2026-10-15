@@ -97,8 +97,13 @@ def pagos():
 
         desde_dt = datetime.strptime(desde_str, "%Y-%m-%d") if desde_str else (datetime.now(AR) - timedelta(days=30))
         hasta_dt = datetime.strptime(hasta_str, "%Y-%m-%d") if hasta_str else datetime.now(AR)
+        # Usar NOW() como end_date si hasta es hoy o futuro, para no perder pagos recientes
+        hoy = datetime.now(AR).date()
         begin_date = desde_dt.strftime("%Y-%m-%dT00:00:00.000-03:00")
-        end_date   = hasta_dt.strftime("%Y-%m-%dT23:59:59.999-03:00")
+        if hasta_dt.date() >= hoy:
+            end_date = datetime.now(AR).strftime("%Y-%m-%dT%H:%M:%S.000-03:00")
+        else:
+            end_date = hasta_dt.strftime("%Y-%m-%dT23:59:59.999-03:00")
 
         filtros = {
             "sort": "date_created", "criteria": "desc",
@@ -119,14 +124,13 @@ def pagos():
         else:
             pagos_f = all_p
 
-        # Pre-calcular fecha_ex_fmt una sola vez
-        fecha_ex_fmt = None
+        # Pre-calcular fecha_ex como objeto date (comparación robusta)
+        dt_ex_date = None
         if fecha_ex:
             try:
-                dt_ex = datetime.strptime(fecha_ex, "%Y-%m-%d")
-                fecha_ex_fmt = dt_ex.strftime("%d/%m/%Y")
+                dt_ex_date = datetime.strptime(fecha_ex, "%Y-%m-%d").date()
             except Exception:
-                fecha_ex_fmt = fecha_ex
+                dt_ex_date = None
 
         # Filtros locales
         rows = []
@@ -138,11 +142,25 @@ def pagos():
             if mmax is not None and amt > mmax:
                 continue
 
-            fecha_fmt = fmt_date(p.get("date_created", ""))
-            if fecha_ex_fmt:
-                # fecha_ex_fmt es DD/MM/YYYY, fecha_fmt es DD/MM/YYYY HH:MM
-                if fecha_ex_fmt not in fecha_fmt:
-                    continue
+            # Parsear fecha del pago en zona Argentina para comparar
+            raw_fecha = p.get("date_created", "")
+            fecha_fmt = fmt_date(raw_fecha)
+
+            if dt_ex_date is not None:
+                try:
+                    s2 = raw_fecha.replace("Z", "+00:00")
+                    import re as _re2
+                    s2 = _re2.sub(r'(\.\d{6})\d+', r'\1', s2)
+                    dt_pago = datetime.fromisoformat(s2)
+                    if dt_pago.tzinfo is None:
+                        dt_pago = dt_pago.replace(tzinfo=timezone.utc)
+                    pago_date = dt_pago.astimezone(AR).date()
+                    if pago_date != dt_ex_date:
+                        continue
+                except Exception:
+                    # fallback: comparar string
+                    if dt_ex_date.strftime("%d/%m/%Y") not in fecha_fmt:
+                        continue
 
             com = comision(p)
             monto_neto = amt - com
