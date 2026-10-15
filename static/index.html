@@ -422,9 +422,9 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
 
 // ── Columnas por tipo ─────────────────────────────────────────────────────
 const COLS = {
-  received: ["Fecha","ID","Estado","Monto","Entradas","Acumulado"],
-  sent:     ["Fecha","ID","Estado","Monto","Acumulado"],
-  all:      ["Fecha","ID","Estado","Tipo","Monto","Entradas","Acumulado"],
+  received: ["Fecha","Monto","Entradas","ID","Estado","Acumulado"],
+  sent:     ["Fecha","Monto","ID","Estado","Acumulado"],
+  all:      ["Fecha","Monto","Entradas","Tipo","ID","Estado","Acumulado"],
 };
 
 function buildThead(tipo){
