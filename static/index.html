@@ -341,10 +341,6 @@ tr.approved .ent-col { color: var(--green); font-style: normal; font-weight: 600
     <div class="slabel">Monto total aprobado</div>
     <div class="sval" id="st-monto">—</div>
   </div>
-  <div class="stat-card green">
-    <div class="slabel">Monto neto</div>
-    <div class="sval" id="st-neto">—</div>
-  </div>
   <div class="stat-card orange">
     <div class="slabel">Pendientes</div>
     <div class="sval" id="st-pend">—</div>
@@ -426,9 +422,9 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
 
 // ── Columnas por tipo ─────────────────────────────────────────────────────
 const COLS = {
-  received: ["Fecha","ID","Estado","Monto","Entradas","Monto neto","Acumulado"],
-  sent:     ["Fecha","ID","Estado","Monto","Monto neto","Acumulado"],
-  all:      ["Fecha","ID","Estado","Tipo","Monto","Entradas","Monto neto","Acumulado"],
+  received: ["Fecha","ID","Estado","Monto","Entradas","Acumulado"],
+  sent:     ["Fecha","ID","Estado","Monto","Acumulado"],
+  all:      ["Fecha","ID","Estado","Tipo","Monto","Entradas","Acumulado"],
 };
 
 function buildThead(tipo){
@@ -455,7 +451,7 @@ async function buscar(){
   msg.textContent = "⏳ Consultando…";
   msg.style.display = "block";
   document.getElementById("tabla").style.display = "none";
-  ["st-registros","st-monto","st-neto","st-pend","st-entradas"].forEach(id => {
+  ["st-registros","st-monto","st-pend","st-entradas"].forEach(id => {
     document.getElementById(id).textContent = "—";
   });
 
@@ -513,7 +509,6 @@ function renderTabla(rows, stats, tipo){
   // Stats
   document.getElementById("st-registros").textContent = stats.registros;
   document.getElementById("st-monto").textContent = fmt(stats.tot_monto);
-  document.getElementById("st-neto").textContent  = fmt(stats.tot_neto);
   document.getElementById("st-pend").textContent  = stats.pendientes;
   document.getElementById("st-entradas").textContent = stats.entradas_txt;
   document.getElementById("card-entradas").style.display = tipo === "received" ? "" : "none";
@@ -549,8 +544,6 @@ function renderTabla(rows, stats, tipo){
           cells.push(`<td class="num">${fmt(r.monto)}</td>`); break;
         case "Entradas":
           cells.push(`<td class="ent-col">${r.entradas || "—"}</td>`); break;
-        case "Monto neto":
-          cells.push(`<td class="num">${fmt(r.monto_neto)}</td>`); break;
         case "Acumulado":
           cells.push(`<td class="acum">${r.acumulado != null ? fmt(r.acumulado) : "—"}</td>`); break;
         default:
@@ -614,7 +607,6 @@ function exportarCSV(){
         case "Tipo":      return `"${r.tipo || ""}"`;
         case "Monto":     return r.monto ?? "";
         case "Entradas":  return `"${r.entradas || ""}"`;
-        case "Monto neto":return r.monto_neto ?? "";
         case "Acumulado": return r.acumulado ?? "";
         default:          return "";
       }
