@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CobroCataTAF">
+<meta name="theme-color" content="#0068a8">
+<link rel="manifest" href="/manifest.json">
+<title>CobroCataTAF v2.0</title>
+<style>
+/* ── Tokens ── */
+:root {
+  --bg:      #eef2f6;
+  --bg2:     #ffffff;
+  --bg3:     #e4eaf2;
+  --border:  #cbd5e0;
+  --fg:      #1a202c;
+  --fg2:     #64748b;
+  --accent:  #0068a8;
+  --accent2: #004f80;
+  --green:   #276749;
+  --green2:  #22543d;
+  --orange:  #c05621;
+  --approved:#f0fff4;
+  --pending: #fffbeb;
+  --rejected:#fff5f5;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:      #0d1117;
+    --bg2:     #161b22;
+    --bg3:     #21262d;
+    --border:  #30363d;
+    --fg:      #e6edf3;
+    --fg2:     #8b949e;
+    --accent:  #38b2d8;
+    --accent2: #009ee3;
+    --green:   #3fb950;
+    --green2:  #2ea043;
+    --orange:  #f97316;
+    --approved:#0d2818;
+    --pending: #2d2200;
+    --rejected:#2d0d0d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:      #0d1117;
+  --bg2:     #161b22;
+  --bg3:     #21262d;
+  --border:  #30363d;
+  --fg:      #e6edf3;
+  --fg2:     #8b949e;
+  --accent:  #38b2d8;
+  --accent2: #009ee3;
+  --green:   #3fb950;
+  --green2:  #2ea043;
+  --orange:  #f97316;
+  --approved:#0d2818;
+  --pending: #2d2200;
+  --rejected:#2d0d0d;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg); color: var(--fg);
+  min-height: 100vh; font-size: 14px;
+}
+
+/* ── HEADER ── */
+header {
+  background: var(--accent); color: white;
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px;
+  position: sticky; top: 0; z-index: 100;
+}
+header h1 { font-size: 1rem; flex: 1; font-weight: 700; }
+.hbtn {
+  background: rgba(255,255,255,0.18); border: none; color: white;
+  border-radius: 6px; padding: 6px 10px; cursor: pointer;
+  font-size: 0.8rem; white-space: nowrap;
+}
+.hbtn:active { background: rgba(255,255,255,0.3); }
+
+/* ── CONFIG PANEL ── */
+#panel-config {
+  display: none; background: var(--bg2);
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+}
+#panel-config label {
+  display: block; font-size: 0.75rem; color: var(--fg2);
+  margin-bottom: 3px; margin-top: 10px;
+}
+#panel-config input {
+  width: 100%; border: 1px solid var(--border);
+  border-radius: 6px; padding: 8px 10px; font-size: 0.9rem;
+  background: var(--bg); color: var(--fg);
+}
+#btn-guardar {
+  margin-top: 12px; background: var(--accent); color: white;
+  border: none; border-radius: 6px; padding: 9px 18px;
+  cursor: pointer; font-size: 0.9rem; width: 100%;
+}
+
+/* ── TABS ── */
+.tabs-bar {
+  display: flex; background: var(--bg2);
+  border-bottom: 2px solid var(--border);
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+}
+.tabs-bar::-webkit-scrollbar { display: none; }
+.tab-btn {
+  flex: 1; min-width: 110px; padding: 12px 8px;
+  border: none; background: transparent; color: var(--fg2);
+  font-size: 0.8rem; font-weight: 600; cursor: pointer;
+  border-bottom: 3px solid transparent; margin-bottom: -2px;
+  white-space: nowrap; transition: color 0.15s;
+}
+.tab-btn.active {
+  color: var(--accent); border-bottom-color: var(--accent);
+}
+.tab-btn:active { background: var(--bg3); }
+
+/* ── FILTROS ── */
+#filtros {
+  background: var(--bg2); padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.fila-filtros {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;
+  align-items: flex-end;
+}
+.campo { display: flex; flex-direction: column; }
+.campo label { font-size: 0.7rem; color: var(--fg2); margin-bottom: 3px; }
+.campo input, .campo select {
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 7px 8px; font-size: 0.82rem;
+  background: var(--bg); color: var(--fg);
+  min-width: 0;
+}
+.f-fecha  { flex: 1.5; min-width: 120px; }
+.f-estado { flex: 1;   min-width: 110px; }
+.f-fex    { flex: 1;   min-width: 100px; }
+.f-monto  { flex: 1;   min-width: 90px; }
+.f-limite { flex: 1;   min-width: 80px; }
+
+.btns-row { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 4px; }
+.btn {
+  border: none; border-radius: 6px; padding: 9px 16px;
+  cursor: pointer; font-size: 0.85rem; font-weight: 600;
+  white-space: nowrap; color: white;
+}
+.btn-buscar { background: var(--accent); }
+.btn-csv    { background: #2b6cb0; }
+.btn-buscar:active { background: var(--accent2); }
+.btn-csv:active    { opacity: 0.8; }
+
+/* ── STATS ── */
+#stats {
+  display: flex; gap: 8px; padding: 10px 16px;
+  flex-wrap: wrap; background: var(--bg);
+}
+.stat-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 9px 12px;
+  flex: 1; min-width: 110px;
+}
+.stat-card .slabel {
+  font-size: 0.65rem; color: var(--fg2);
+  text-transform: uppercase; letter-spacing: .04em;
+}
+.stat-card .sval {
+  font-size: 1.1rem; font-weight: 700; color: var(--accent);
+  margin-top: 2px; white-space: nowrap;
+}
+.stat-card.green .sval { color: var(--green); }
+.stat-card.orange .sval { color: var(--orange); }
+
+/* ── TABLA ── */
+#tabla-wrap { overflow-x: auto; padding: 8px 16px 80px; }
+table {
+  width: 100%; border-collapse: collapse; background: var(--bg2);
+  border-radius: 8px; overflow: hidden;
+  border: 1px solid var(--border); font-size: 0.82rem;
+  min-width: 600px;
+}
+th {
+  background: var(--bg3); padding: 9px 10px; text-align: left;
+  font-weight: 600; color: var(--fg2); white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer; user-select: none;
+}
+th:hover { color: var(--accent); }
+th.sort-asc::after  { content: " ▲"; font-size: 0.65rem; }
+th.sort-desc::after { content: " ▼"; font-size: 0.65rem; }
+td {
+  padding: 8px 10px; border-top: 1px solid var(--border);
+  color: var(--fg); white-space: nowrap;
+}
+tr.approved td { background: var(--approved); }
+tr.pending  td { background: var(--pending); }
+tr.rejected td { background: var(--rejected); }
+tr:hover td { filter: brightness(0.96); }
+.num  { text-align: right; font-variant-numeric: tabular-nums; }
+.acum { text-align: right; font-variant-numeric: tabular-nums; color: var(--green); font-weight: 700; }
+.badge {
+  display: inline-block; font-size: 0.7rem; font-weight: 700;
+  padding: 2px 7px; border-radius: 20px;
+}
+.badge-approved { background: #c6f6d5; color: #276749; }
+.badge-pending  { background: #fefcbf; color: #744210; }
+.badge-rejected { background: #fed7d7; color: #9b2c2c; }
+.badge-refunded { background: #bee3f8; color: #2b6cb0; }
+.badge-cancelled{ background: #e9d8fd; color: #553c9a; }
+
+[data-theme="dark"] .badge-approved { background: #1c3d2a; color: #68d391; }
+[data-theme="dark"] .badge-pending  { background: #3d3000; color: #f6e05e; }
+[data-theme="dark"] .badge-rejected { background: #3d0d0d; color: #fc8181; }
+[data-theme="dark"] .badge-refunded { background: #0d2d3d; color: #63b3ed; }
+[data-theme="dark"] .badge-cancelled{ background: #2d1b4d; color: #d6bcfa; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .badge-approved { background: #1c3d2a; color: #68d391; }
+  :root:not([data-theme="light"]) .badge-pending  { background: #3d3000; color: #f6e05e; }
+  :root:not([data-theme="light"]) .badge-rejected { background: #3d0d0d; color: #fc8181; }
+  :root:not([data-theme="light"]) .badge-refunded { background: #0d2d3d; color: #63b3ed; }
+  :root:not([data-theme="light"]) .badge-cancelled{ background: #2d1b4d; color: #d6bcfa; }
+}
+
+.id-col { font-size: 0.72rem; color: var(--fg2); }
+.ent-col { font-size: 0.8rem; font-style: italic; color: var(--fg2); }
+tr.approved .ent-col { color: var(--green); font-style: normal; font-weight: 600; }
+
+#msg {
+  text-align: center; padding: 40px 16px;
+  color: var(--fg2); font-size: 0.9rem;
+}
+
+#toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  background: var(--fg); color: var(--bg); padding: 10px 20px;
+  border-radius: 20px; font-size: 0.85rem; opacity: 0;
+  transition: opacity .3s; pointer-events: none; z-index: 999;
+  white-space: nowrap;
+}
+#toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 id="titulo-header">CobroCataTAF v2.0</h1>
+  <button class="hbtn" id="btn-tema">🌙</button>
+  <button class="hbtn" id="btn-config">⚙ Config</button>
+</header>
+
+<div id="panel-config">
+  <label>Nombre del dashboard</label>
+  <input id="cfg-nombre" type="text" placeholder="Ej: CobroCataTAF v2.0">
+  <label>Access Token de Mercado Pago</label>
+  <input id="cfg-token" type="password" placeholder="APP_USR-...">
+  <button id="btn-guardar">💾 Guardar</button>
+</div>
+
+<!-- TABS -->
+<div class="tabs-bar">
+  <button class="tab-btn active" data-tipo="received">💰 Pagos recibidos</button>
+  <button class="tab-btn" data-tipo="sent">📤 Pagos realizados</button>
+  <button class="tab-btn" data-tipo="all">📋 Todos</button>
+</div>
+
+<!-- FILTROS -->
+<div id="filtros">
+  <div class="fila-filtros">
+    <div class="campo f-fecha">
+      <label>Desde</label>
+      <input type="date" id="f-desde">
+    </div>
+    <div class="campo f-fecha">
+      <label>Hasta</label>
+      <input type="date" id="f-hasta">
+    </div>
+    <div class="campo f-estado">
+      <label>Estado</label>
+      <select id="f-estado">
+        <option value="">Todos</option>
+        <option value="approved">Aprobados</option>
+        <option value="pending">Pendientes</option>
+        <option value="rejected">Rechazados</option>
+        <option value="refunded">Devueltos</option>
+        <option value="cancelled">Cancelados</option>
+      </select>
+    </div>
+    <div class="campo f-fex">
+      <label>Fecha exacta</label>
+      <input type="text" id="f-fecha-ex" placeholder="DD/MM/AAAA">
+    </div>
+    <div class="campo f-monto">
+      <label>Monto mín</label>
+      <input type="number" id="f-mmin" placeholder="0">
+    </div>
+    <div class="campo f-monto">
+      <label>Monto máx</label>
+      <input type="number" id="f-mmax" placeholder="∞">
+    </div>
+    <div class="campo f-limite">
+      <label>Límite</label>
+      <select id="f-limite">
+        <option value="50">50</option>
+        <option value="100">100</option>
+        <option value="200" selected>200</option>
+        <option value="500">500</option>
+        <option value="1000">1000</option>
+      </select>
+    </div>
+  </div>
+  <div class="btns-row">
+    <button class="btn btn-buscar" id="btn-buscar">🔍 Buscar</button>
+    <button class="btn btn-csv" id="btn-csv">📥 CSV</button>
+  </div>
+</div>
+
+<!-- STATS -->
+<div id="stats">
+  <div class="stat-card">
+    <div class="slabel">Registros</div>
+    <div class="sval" id="st-registros">—</div>
+  </div>
+  <div class="stat-card green">
+    <div class="slabel">Monto total aprobado</div>
+    <div class="sval" id="st-monto">—</div>
+  </div>
+  <div class="stat-card green">
+    <div class="slabel">Monto neto</div>
+    <div class="sval" id="st-neto">—</div>
+  </div>
+  <div class="stat-card orange">
+    <div class="slabel">Pendientes</div>
+    <div class="sval" id="st-pend">—</div>
+  </div>
+  <div class="stat-card" id="card-entradas" style="display:none">
+    <div class="slabel">🎟 Entradas vendidas</div>
+    <div class="sval" id="st-entradas">—</div>
+  </div>
+</div>
+
+<!-- TABLA -->
+<div id="tabla-wrap">
+  <div id="msg">Configurá tu token y hacé una búsqueda.</div>
+  <table id="tabla" style="display:none">
+    <thead>
+      <tr id="thead-row"></tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── Storage ──────────────────────────────────────────────────────────────
+function lsGet(k){ try{ return localStorage.getItem(k)||""; }catch(e){ return ""; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+
+// ── Tema ──────────────────────────────────────────────────────────────────
+const html = document.documentElement;
+const btnTema = document.getElementById("btn-tema");
+function aplicarTema(t){
+  html.setAttribute("data-theme", t);
+  btnTema.textContent = t === "dark" ? "☀️" : "🌙";
+  lsSet("mp_tema", t);
+}
+aplicarTema(lsGet("mp_tema") || "light");
+btnTema.onclick = () => aplicarTema(html.getAttribute("data-theme") === "dark" ? "light" : "dark");
+
+// ── Inicializar ───────────────────────────────────────────────────────────
+const hoy = new Date().toISOString().slice(0,10);
+document.getElementById("f-desde").value = hoy;
+document.getElementById("f-hasta").value = hoy;
+
+const nombre = lsGet("mp_nombre") || "CobroCataTAF v2.0";
+document.getElementById("titulo-header").textContent = nombre;
+document.title = nombre;
+document.getElementById("cfg-nombre").value = nombre;
+document.getElementById("cfg-token").value  = lsGet("mp_token");
+
+// ── Config ────────────────────────────────────────────────────────────────
+document.getElementById("btn-config").onclick = () => {
+  const p = document.getElementById("panel-config");
+  p.style.display = p.style.display === "none" ? "block" : "none";
+};
+document.getElementById("btn-guardar").onclick = () => {
+  const n = document.getElementById("cfg-nombre").value.trim() || "CobroCataTAF v2.0";
+  const t = document.getElementById("cfg-token").value.trim();
+  lsSet("mp_nombre", n); lsSet("mp_token", t);
+  document.getElementById("titulo-header").textContent = n;
+  document.title = n;
+  document.getElementById("panel-config").style.display = "none";
+  toast("✅ Guardado");
+};
+
+// ── Tabs ──────────────────────────────────────────────────────────────────
+let tipoActual = "received";
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    tipoActual = btn.dataset.tipo;
+    // Entradas solo en recibidos
+    document.getElementById("card-entradas").style.display =
+      tipoActual === "received" ? "" : "none";
+  };
+});
+
+// ── Columnas por tipo ─────────────────────────────────────────────────────
+const COLS = {
+  received: ["Fecha","ID","Estado","Monto","Entradas","Monto neto","Acumulado"],
+  sent:     ["Fecha","ID","Estado","Monto","Monto neto","Acumulado"],
+  all:      ["Fecha","ID","Estado","Tipo","Monto","Entradas","Monto neto","Acumulado"],
+};
+
+function buildThead(tipo){
+  const tr = document.getElementById("thead-row");
+  tr.innerHTML = "";
+  COLS[tipo].forEach(col => {
+    const th = document.createElement("th");
+    th.textContent = col;
+    th.dataset.col = col;
+    th.onclick = () => sortTabla(col);
+    tr.appendChild(th);
+  });
+}
+
+// ── Buscar ────────────────────────────────────────────────────────────────
+let datosActuales = [];
+document.getElementById("btn-buscar").onclick = buscar;
+
+async function buscar(){
+  const token = lsGet("mp_token");
+  if(!token){ toast("⚠ Primero guardá tu Access Token en Config"); return; }
+
+  const msg = document.getElementById("msg");
+  msg.textContent = "⏳ Consultando…";
+  msg.style.display = "block";
+  document.getElementById("tabla").style.display = "none";
+  ["st-registros","st-monto","st-neto","st-pend","st-entradas"].forEach(id => {
+    document.getElementById(id).textContent = "—";
+  });
+
+  const params = new URLSearchParams({
+    token,
+    tipo:       tipoActual,
+    desde:      document.getElementById("f-desde").value,
+    hasta:      document.getElementById("f-hasta").value,
+    estado:     document.getElementById("f-estado").value,
+    fecha_exacta: document.getElementById("f-fecha-ex").value,
+    monto_min:  document.getElementById("f-mmin").value,
+    monto_max:  document.getElementById("f-mmax").value,
+    limite:     document.getElementById("f-limite").value,
+  });
+
+  try {
+    const res  = await fetch("/api/pagos?" + params);
+    const data = await res.json();
+    if(data.error){
+      toast("❌ " + data.error);
+      msg.textContent = "❌ " + data.error;
+      return;
+    }
+    datosActuales = data.rows;
+    buildThead(tipoActual);
+    renderTabla(data.rows, data.stats, tipoActual);
+  } catch(e) {
+    toast("❌ Error de conexión");
+    msg.textContent = "Error de conexión.";
+  }
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+function fmt(n){
+  if(n == null) return "—";
+  return "$ " + Math.round(n).toLocaleString("es-AR");
+}
+function fmtDec(n){
+  if(n == null) return "—";
+  return "$ " + n.toLocaleString("es-AR", {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function badgeEstado(st){
+  const map = {
+    approved:"Aprobado", pending:"Pendiente", rejected:"Rechazado",
+    refunded:"Devuelto", cancelled:"Cancelado",
+  };
+  const cls = "badge badge-" + (st || "pending");
+  return `<span class="${cls}">${map[st] || st}</span>`;
+}
+
+function renderTabla(rows, stats, tipo){
+  const tbody = document.getElementById("tbody");
+  tbody.innerHTML = "";
+
+  // Stats
+  document.getElementById("st-registros").textContent = stats.registros;
+  document.getElementById("st-monto").textContent = fmt(stats.tot_monto);
+  document.getElementById("st-neto").textContent  = fmt(stats.tot_neto);
+  document.getElementById("st-pend").textContent  = stats.pendientes;
+  document.getElementById("st-entradas").textContent = stats.entradas_txt;
+  document.getElementById("card-entradas").style.display = tipo === "received" ? "" : "none";
+
+  if(!rows.length){
+    document.getElementById("msg").textContent = "Sin resultados para ese período.";
+    document.getElementById("msg").style.display = "block";
+    document.getElementById("tabla").style.display = "none";
+    return;
+  }
+
+  rows.forEach(r => {
+    const tr = document.createElement("tr");
+    tr.classList.add(r.estado || "");
+
+    let cells = [];
+    const cols = COLS[tipo];
+
+    const isEntrada = r.estado !== undefined; // para tab "all" distinguir
+
+    cols.forEach(col => {
+      switch(col){
+        case "Fecha":
+          cells.push(`<td>${r.fecha}</td>`); break;
+        case "ID":
+          cells.push(`<td class="id-col">${r.id}</td>`); break;
+        case "Estado":
+          cells.push(`<td>${badgeEstado(r.estado)}</td>`); break;
+        case "Tipo":
+          const tipo_txt = r.tipo || (r.acumulado != null ? "Entrada" : "Salida");
+          cells.push(`<td>${tipo_txt}</td>`); break;
+        case "Monto":
+          cells.push(`<td class="num">${fmt(r.monto)}</td>`); break;
+        case "Entradas":
+          cells.push(`<td class="ent-col">${r.entradas || "—"}</td>`); break;
+        case "Monto neto":
+          cells.push(`<td class="num">${fmt(r.monto_neto)}</td>`); break;
+        case "Acumulado":
+          cells.push(`<td class="acum">${r.acumulado != null ? fmt(r.acumulado) : "—"}</td>`); break;
+        default:
+          cells.push(`<td>—</td>`);
+      }
+    });
+
+    tr.innerHTML = cells.join("");
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById("msg").style.display = "none";
+  document.getElementById("tabla").style.display = "table";
+}
+
+// ── Ordenar tabla ─────────────────────────────────────────────────────────
+let sortCol = null, sortDir = 1;
+function sortTabla(col){
+  const tbody = document.getElementById("tbody");
+  const rows  = Array.from(tbody.querySelectorAll("tr"));
+  const cols  = COLS[tipoActual];
+  const ci    = cols.indexOf(col);
+  if(ci < 0) return;
+
+  // Toggle
+  if(sortCol === col) sortDir *= -1;
+  else { sortCol = col; sortDir = 1; }
+
+  // Actualizar headers
+  document.querySelectorAll("#thead-row th").forEach(th => {
+    th.classList.remove("sort-asc","sort-desc");
+    if(th.dataset.col === col)
+      th.classList.add(sortDir === 1 ? "sort-asc" : "sort-desc");
+  });
+
+  rows.sort((a, b) => {
+    let va = a.cells[ci]?.textContent.replace(/[$\s.,]/g,"") || "";
+    let vb = b.cells[ci]?.textContent.replace(/[$\s.,]/g,"") || "";
+    const na = parseFloat(va.replace(/\./g,"").replace(",","."));
+    const nb = parseFloat(vb.replace(/\./g,"").replace(",","."));
+    if(!isNaN(na) && !isNaN(nb)) return (na - nb) * sortDir;
+    return va.localeCompare(vb, "es") * sortDir;
+  });
+
+  rows.forEach(r => tbody.appendChild(r));
+}
+
+// ── CSV ───────────────────────────────────────────────────────────────────
+document.getElementById("btn-csv").onclick = exportarCSV;
+
+function exportarCSV(){
+  if(!datosActuales.length){ toast("Sin datos para exportar"); return; }
+  const cols = COLS[tipoActual];
+  let csv = cols.join(",") + "\n";
+  datosActuales.forEach(r => {
+    const row = cols.map(col => {
+      switch(col){
+        case "Fecha":     return `"${r.fecha}"`;
+        case "ID":        return `"${r.id}"`;
+        case "Estado":    return `"${r.estado}"`;
+        case "Tipo":      return `"${r.tipo || ""}"`;
+        case "Monto":     return r.monto ?? "";
+        case "Entradas":  return `"${r.entradas || ""}"`;
+        case "Monto neto":return r.monto_neto ?? "";
+        case "Acumulado": return r.acumulado ?? "";
+        default:          return "";
+      }
+    });
+    csv += row.join(",") + "\n";
+  });
+  const blob = new Blob(["﻿"+csv], {type:"text/csv;charset=utf-8"});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href = url;
+  a.download = (lsGet("mp_nombre")||"cobros") + "_" + tipoActual + "_" + hoy + ".csv";
+  a.click();
+  URL.revokeObjectURL(url);
+  toast("✅ CSV descargado");
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg){
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2800);
+}
+
+// ── Service Worker ────────────────────────────────────────────────────────
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.js").catch(() => {});
+}
+
+// Inicializar thead con tab por defecto
+buildThead("received");
+</script>
+</body>
+</html>
